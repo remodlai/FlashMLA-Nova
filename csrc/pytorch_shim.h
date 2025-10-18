@@ -9,7 +9,7 @@
  * with PyTorch Library. This is done using `make_pytorch_shim` which creates a
  * lambda that exponses the API using PyTorch compatible types to the types.
  * This is useful when trying to ingergate PyBind based external libraries into
- * vLLM.
+ * Nova.
  *
  * Example:
  *
