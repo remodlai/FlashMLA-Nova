@@ -21,12 +21,19 @@ RUN apt-get update -y \
 
 ENV PATH="/root/.local/bin:$PATH"
 
+# Create virtual environment
+RUN /root/.local/bin/uv venv /opt/venv --python ${PYTHON_VERSION}
+
+ENV PATH="/opt/venv/bin:/root/.local/bin:$PATH"
+ENV VIRTUAL_ENV="/opt/venv"
+
 # Install build dependencies
+RUN uv pip install --python /opt/venv/bin/python setuptools wheel packaging
+
 ARG PYTORCH_INDEX_URL
-RUN /root/.local/bin/uv pip install --system \
-    torch==2.8.0 \
-    --extra-index-url ${PYTORCH_INDEX_URL} \
-    && /root/.local/bin/uv pip install --system ninja cmake sccache setuptools wheel packaging
+RUN uv pip install --python /opt/venv/bin/python torch==2.8.0 --extra-index-url ${PYTORCH_INDEX_URL}
+
+RUN uv pip install --python /opt/venv/bin/python ninja cmake sccache
 
 WORKDIR /workspace
 COPY . .
@@ -44,9 +51,9 @@ RUN if [ "$USE_SCCACHE" = "1" ]; then \
         && export SCCACHE_S3_NO_CREDENTIALS=${SCCACHE_S3_NO_CREDENTIALS} \
         && export SCCACHE_IDLE_TIMEOUT=${SCCACHE_IDLE_TIMEOUT} \
         && sccache --show-stats \
-        && python${PYTHON_VERSION} setup.py bdist_wheel --dist-dir=dist \
+        && python setup.py bdist_wheel --dist-dir=dist \
         && sccache --show-stats; \
     else \
-        python${PYTHON_VERSION} setup.py bdist_wheel --dist-dir=dist; \
+        python setup.py bdist_wheel --dist-dir=dist; \
     fi
 
