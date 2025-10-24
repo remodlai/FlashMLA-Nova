@@ -60,21 +60,36 @@ else:
 
 ext_modules = []
 
+# Base source files (always included)
+sources = [
+    "csrc/pybind.cpp",
+    "csrc/smxx/get_mla_metadata.cu",
+    "csrc/smxx/mla_combine.cu",
+]
+
+# Add SM90 sources if not disabled
+DISABLE_SM90 = is_flag_set("FLASH_MLA_DISABLE_SM90")
+if not DISABLE_SM90:
+    sources.extend([
+        "csrc/sm90/decode/dense/splitkv_mla.cu",
+        "csrc/sm90/decode/sparse_fp8/splitkv_mla.cu",
+        "csrc/sm90/prefill/sparse/fwd.cu",
+    ])
+
+# Add SM100 sources if not disabled
+DISABLE_SM100 = is_flag_set("FLASH_MLA_DISABLE_SM100")
+if not DISABLE_SM100:
+    sources.extend([
+        "csrc/sm100/decode/sparse_fp8/splitkv_mla.cu",
+        "csrc/sm100/prefill/dense/fmha_cutlass_fwd_sm100.cu",
+        "csrc/sm100/prefill/dense/fmha_cutlass_bwd_sm100.cu",
+        "csrc/sm100/prefill/sparse/fwd.cu",
+    ])
+
 ext_modules.append(
     CUDAExtension(
         name="flash_mla.cuda",
-        sources=[
-            "csrc/pybind.cpp",
-            "csrc/smxx/get_mla_metadata.cu",
-            "csrc/smxx/mla_combine.cu",
-            "csrc/sm90/decode/dense/splitkv_mla.cu",
-            "csrc/sm90/decode/sparse_fp8/splitkv_mla.cu",
-            "csrc/sm90/prefill/sparse/fwd.cu",
-            "csrc/sm100/decode/sparse_fp8/splitkv_mla.cu",
-            "csrc/sm100/prefill/dense/fmha_cutlass_fwd_sm100.cu",
-            "csrc/sm100/prefill/dense/fmha_cutlass_bwd_sm100.cu",
-            "csrc/sm100/prefill/sparse/fwd.cu",
-        ],
+        sources=sources,
         extra_compile_args={
             "cxx": cxx_args + get_features_args() + ["-DNO_PYBIND11=1"],
             "nvcc": [
