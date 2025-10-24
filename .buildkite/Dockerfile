@@ -39,6 +39,9 @@ WORKDIR /workspace
 COPY . .
 
 # Build the wheel
+ARG max_jobs=8
+ENV MAX_JOBS=${max_jobs}
+
 ARG USE_SCCACHE=1
 ARG SCCACHE_BUCKET
 ARG SCCACHE_REGION
