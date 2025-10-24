@@ -45,15 +45,19 @@ ARG SCCACHE_REGION
 ARG SCCACHE_S3_NO_CREDENTIALS=1
 ARG SCCACHE_IDLE_TIMEOUT=0
 
+ARG FLASH_MLA_DISABLE_SM100=0
+
 RUN if [ "$USE_SCCACHE" = "1" ]; then \
         export SCCACHE_BUCKET=${SCCACHE_BUCKET} \
         && export SCCACHE_REGION=${SCCACHE_REGION} \
         && export SCCACHE_S3_NO_CREDENTIALS=${SCCACHE_S3_NO_CREDENTIALS} \
         && export SCCACHE_IDLE_TIMEOUT=${SCCACHE_IDLE_TIMEOUT} \
+        && export FLASH_MLA_DISABLE_SM100=${FLASH_MLA_DISABLE_SM100} \
         && sccache --show-stats \
         && python setup.py bdist_wheel --dist-dir=dist \
         && sccache --show-stats; \
     else \
-        python setup.py bdist_wheel --dist-dir=dist; \
+        export FLASH_MLA_DISABLE_SM100=${FLASH_MLA_DISABLE_SM100} \
+        && python setup.py bdist_wheel --dist-dir=dist; \
     fi
 
