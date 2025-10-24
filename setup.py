@@ -156,16 +156,35 @@ ext_modules.append(
 
 try:
     cmd = ['git', 'rev-parse', '--short', 'HEAD']
-    rev = '+' + subprocess.check_output(cmd).decode('ascii').rstrip()
+    git_commit = subprocess.check_output(cmd).decode('ascii').rstrip()
 except Exception as _:
-    now = datetime.now()
-    date_time_str = now.strftime("%Y-%m-%d-%H-%M-%S")
-    rev = '+' + date_time_str
+    git_commit = None
 
+# Get CUDA version from nvcc
+cuda_version = "unknown"
+if CUDA_HOME:
+    try:
+        nvcc_output = subprocess.check_output(
+            [os.path.join(CUDA_HOME, "bin", "nvcc"), '--version'],
+            stderr=subprocess.STDOUT
+        ).decode('utf-8')
+        version_str = nvcc_output.split('release ')[1].split(',')[0].strip()
+        major, minor = version_str.split('.')[:2]
+        cuda_version = f"cu{major}{minor}"
+    except:
+        pass
+
+# Build version string: 1.0.0+cu129.git_commit
+if git_commit:
+    version_suffix = f"+{cuda_version}.{git_commit}"
+else:
+    now = datetime.now()
+    date_time_str = now.strftime("%Y%m%d%H%M%S")
+    version_suffix = f"+{cuda_version}.{date_time_str}"
 
 setup(
     name="flash_mla",
-    version="1.0.0" + rev,
+    version="1.0.0" + version_suffix,
     packages=find_packages(include=['flash_mla']),
     ext_modules=ext_modules,
     cmdclass={"build_ext": BuildExtension},
