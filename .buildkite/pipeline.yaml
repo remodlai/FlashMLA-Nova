@@ -4,7 +4,7 @@ steps:
     agents:
       queue: cpu_queue_postmerge
     commands:
-      - "DOCKER_BUILDKIT=1 docker build --build-arg CUDA_VERSION=12.9.1 --build-arg TORCH_CUDA_ARCH_LIST='9.0' --build-arg PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cu129 --build-arg SCCACHE_BUCKET=lexiq-nova-build-sccache --build-arg SCCACHE_REGION=us-west-2 --tag flashmla-build:cu129 --target build -f .buildkite/Dockerfile ."
+      - "DOCKER_BUILDKIT=1 docker build --build-arg CUDA_VERSION=12.9.1 --build-arg TORCH_CUDA_ARCH_LIST='9.0' --build-arg PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cu129 --build-arg SCCACHE_BUCKET=lexiq-nova-build-sccache --build-arg SCCACHE_REGION=us-west-2 --build-arg FLASH_MLA_DISABLE_SM100=1 --tag flashmla-build:cu129 --target build -f .buildkite/Dockerfile ."
       - "mkdir -p artifacts"
       - "docker run --rm -v $(pwd)/artifacts:/artifacts_host flashmla-build:cu129 bash -c 'cp -r dist /artifacts_host && chmod -R a+rw /artifacts_host'"
       - "pip install modal"
@@ -58,7 +58,7 @@ steps:
     agents:
       queue: arm64_cpu_queue_postmerge
     commands:
-      - "DOCKER_BUILDKIT=1 docker build --build-arg CUDA_VERSION=12.9.1 --build-arg TORCH_CUDA_ARCH_LIST='8.7 8.9 9.0' --build-arg PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cu129 --build-arg SCCACHE_BUCKET=lexiq-nova-build-sccache --build-arg SCCACHE_REGION=us-west-2 --tag flashmla-build:cu129-aarch64 --target build -f .buildkite/Dockerfile ."
+      - "DOCKER_BUILDKIT=1 docker build --build-arg CUDA_VERSION=12.9.1 --build-arg TORCH_CUDA_ARCH_LIST='8.7 8.9 9.0' --build-arg PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cu129 --build-arg SCCACHE_BUCKET=lexiq-nova-build-sccache --build-arg SCCACHE_REGION=us-west-2 --build-arg FLASH_MLA_DISABLE_SM100=1 --tag flashmla-build:cu129-aarch64 --target build -f .buildkite/Dockerfile ."
       - "mkdir -p artifacts"
       - "docker run --rm -v $(pwd)/artifacts:/artifacts_host flashmla-build:cu129-aarch64 bash -c 'cp -r dist /artifacts_host && chmod -R a+rw /artifacts_host'"
       - "pip install modal"
