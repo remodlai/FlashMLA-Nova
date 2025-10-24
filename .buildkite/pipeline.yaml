@@ -4,84 +4,72 @@ steps:
     agents:
       queue: cpu_queue_postmerge
     commands:
-      - "docker run --rm -v $(pwd):/workspace -w /workspace -e SCCACHE_BUCKET -e SCCACHE_REGION -e SCCACHE_S3_NO_CREDENTIALS -e SCCACHE_IDLE_TIMEOUT nvidia/cuda:12.9.1-devel-ubuntu22.04 bash -c 'apt-get update && apt-get install -y software-properties-common && add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python3.12 python3.12-dev python3.12-venv git curl && curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH=\"/root/.local/bin:$PATH\" && uv pip install --system torch==2.8.0 --extra-index-url https://download.pytorch.org/whl/cu129 && uv pip install --system ninja cmake sccache && sccache --show-stats && TORCH_CUDA_ARCH_LIST=\"9.0\" python3.12 setup.py bdist_wheel --dist-dir=dist && sccache --show-stats'"
-      - "sccache --start-server && sccache --show-stats"
-      - "uv pip install --system modal"
+      - "DOCKER_BUILDKIT=1 docker build --build-arg CUDA_VERSION=12.9.1 --build-arg TORCH_CUDA_ARCH_LIST='9.0' --build-arg PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cu129 --build-arg SCCACHE_BUCKET=lexiq-nova-build-sccache --build-arg SCCACHE_REGION=us-west-2 --tag flashmla-build:cu129 --target build -f .buildkite/Dockerfile ."
+      - "mkdir -p artifacts"
+      - "docker run --rm -v $(pwd)/artifacts:/artifacts_host flashmla-build:cu129 bash -c 'cp -r dist /artifacts_host && chmod -R a+rw /artifacts_host'"
+      - "pip install modal"
       - "export MODAL_TOKEN_ID=$(buildkite-agent secret get MODAL_TOKEN_ID)"
       - "export MODAL_TOKEN_SECRET=$(buildkite-agent secret get MODAL_TOKEN_SECRET)"
       - "modal token set --token-id \"$${MODAL_TOKEN_ID}\" --token-secret \"$${MODAL_TOKEN_SECRET}\" --profile=remodlai"
       - "modal profile activate remodlai"
-      - "WHEEL_FILE=$(ls dist/*.whl | head -1)"
+      - "WHEEL_FILE=$(ls artifacts/dist/*.whl | head -1)"
       - "modal volume put wheels \"$${WHEEL_FILE}\" \"/packages/$(basename \"$${WHEEL_FILE}\")\""
     env:
       DOCKER_BUILDKIT: "1"
-      SCCACHE_BUCKET: "lexiq-nova-build-sccache"
-      SCCACHE_REGION: "us-west-2"
-      SCCACHE_S3_NO_CREDENTIALS: "1"
-      SCCACHE_IDLE_TIMEOUT: "0"
 
   - label: "Build FlashMLA wheel - CUDA 12.8 (x86_64)"
     depends_on: ~
     agents:
       queue: cpu_queue_postmerge
     commands:
-      - "docker run --rm -v $(pwd):/workspace -w /workspace -e SCCACHE_BUCKET -e SCCACHE_REGION -e SCCACHE_S3_NO_CREDENTIALS -e SCCACHE_IDLE_TIMEOUT nvidia/cuda:12.8.1-devel-ubuntu22.04 bash -c 'apt-get update && apt-get install -y software-properties-common && add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python3.12 python3.12-dev python3.12-venv git curl && curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH=\"/root/.local/bin:$PATH\" && uv pip install --system torch==2.8.0 --extra-index-url https://download.pytorch.org/whl/cu128 && uv pip install --system ninja cmake sccache && sccache --show-stats && TORCH_CUDA_ARCH_LIST=\"8.0 8.9 9.0\" python3.12 setup.py bdist_wheel --dist-dir=dist && sccache --show-stats'"
-      - "sccache --start-server && sccache --show-stats"
-      - "uv pip install --system modal"
+      - "DOCKER_BUILDKIT=1 docker build --build-arg CUDA_VERSION=12.8.1 --build-arg TORCH_CUDA_ARCH_LIST='8.0 8.9 9.0' --build-arg PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cu128 --build-arg SCCACHE_BUCKET=lexiq-nova-build-sccache --build-arg SCCACHE_REGION=us-west-2 --tag flashmla-build:cu128 --target build -f .buildkite/Dockerfile ."
+      - "mkdir -p artifacts"
+      - "docker run --rm -v $(pwd)/artifacts:/artifacts_host flashmla-build:cu128 bash -c 'cp -r dist /artifacts_host && chmod -R a+rw /artifacts_host'"
+      - "pip install modal"
       - "export MODAL_TOKEN_ID=$(buildkite-agent secret get MODAL_TOKEN_ID)"
       - "export MODAL_TOKEN_SECRET=$(buildkite-agent secret get MODAL_TOKEN_SECRET)"
       - "modal token set --token-id \"$${MODAL_TOKEN_ID}\" --token-secret \"$${MODAL_TOKEN_SECRET}\" --profile=remodlai"
       - "modal profile activate remodlai"
-      - "WHEEL_FILE=$(ls dist/*.whl | head -1)"
+      - "WHEEL_FILE=$(ls artifacts/dist/*.whl | head -1)"
       - "modal volume put wheels \"$${WHEEL_FILE}\" \"/packages/$(basename \"$${WHEEL_FILE}\")\""
     env:
       DOCKER_BUILDKIT: "1"
-      SCCACHE_BUCKET: "lexiq-nova-build-sccache"
-      SCCACHE_REGION: "us-west-2"
-      SCCACHE_S3_NO_CREDENTIALS: "1"
-      SCCACHE_IDLE_TIMEOUT: "0"
 
   - label: "Build FlashMLA wheel - CUDA 12.6 (x86_64)"
     depends_on: ~
     agents:
       queue: cpu_queue_postmerge
     commands:
-      - "docker run --rm -v $(pwd):/workspace -w /workspace -e SCCACHE_BUCKET -e SCCACHE_REGION -e SCCACHE_S3_NO_CREDENTIALS -e SCCACHE_IDLE_TIMEOUT nvidia/cuda:12.6.3-devel-ubuntu22.04 bash -c 'apt-get update && apt-get install -y software-properties-common && add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python3.12 python3.12-dev python3.12-venv git curl && curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH=\"/root/.local/bin:$PATH\" && uv pip install --system torch==2.8.0 --extra-index-url https://download.pytorch.org/whl/cu126 && uv pip install --system ninja cmake sccache && sccache --show-stats && TORCH_CUDA_ARCH_LIST=\"8.0 8.9 9.0\" python3.12 setup.py bdist_wheel --dist-dir=dist && sccache --show-stats'"
-      - "sccache --start-server && sccache --show-stats"
-      - "uv pip install --system modal"
+      - "DOCKER_BUILDKIT=1 docker build --build-arg CUDA_VERSION=12.6.3 --build-arg TORCH_CUDA_ARCH_LIST='8.0 8.9 9.0' --build-arg PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cu126 --build-arg SCCACHE_BUCKET=lexiq-nova-build-sccache --build-arg SCCACHE_REGION=us-west-2 --tag flashmla-build:cu126 --target build -f .buildkite/Dockerfile ."
+      - "mkdir -p artifacts"
+      - "docker run --rm -v $(pwd)/artifacts:/artifacts_host flashmla-build:cu126 bash -c 'cp -r dist /artifacts_host && chmod -R a+rw /artifacts_host'"
+      - "pip install modal"
       - "export MODAL_TOKEN_ID=$(buildkite-agent secret get MODAL_TOKEN_ID)"
       - "export MODAL_TOKEN_SECRET=$(buildkite-agent secret get MODAL_TOKEN_SECRET)"
       - "modal token set --token-id \"$${MODAL_TOKEN_ID}\" --token-secret \"$${MODAL_TOKEN_SECRET}\" --profile=remodlai"
       - "modal profile activate remodlai"
-      - "WHEEL_FILE=$(ls dist/*.whl | head -1)"
+      - "WHEEL_FILE=$(ls artifacts/dist/*.whl | head -1)"
       - "modal volume put wheels \"$${WHEEL_FILE}\" \"/packages/$(basename \"$${WHEEL_FILE}\")\""
     env:
       DOCKER_BUILDKIT: "1"
-      SCCACHE_BUCKET: "lexiq-nova-build-sccache"
-      SCCACHE_REGION: "us-west-2"
-      SCCACHE_S3_NO_CREDENTIALS: "1"
-      SCCACHE_IDLE_TIMEOUT: "0"
 
   - label: "Build FlashMLA wheel - CUDA 12.9 (aarch64)"
     depends_on: ~
     agents:
       queue: arm64_cpu_queue_postmerge
     commands:
-      - "docker run --rm -v $(pwd):/workspace -w /workspace -e SCCACHE_BUCKET -e SCCACHE_REGION -e SCCACHE_S3_NO_CREDENTIALS -e SCCACHE_IDLE_TIMEOUT nvidia/cuda:12.9.1-devel-ubuntu22.04 bash -c 'apt-get update && apt-get install -y software-properties-common && add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python3.12 python3.12-dev python3.12-venv git curl && curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH=\"/root/.local/bin:$PATH\" && uv pip install --system torch==2.8.0 --extra-index-url https://download.pytorch.org/whl/cu129 && uv pip install --system ninja cmake sccache && sccache --show-stats && TORCH_CUDA_ARCH_LIST=\"8.7 8.9 9.0\" python3.12 setup.py bdist_wheel --dist-dir=dist && sccache --show-stats'"
-      - "sccache --start-server && sccache --show-stats"
-      - "uv pip install --system modal"
+      - "DOCKER_BUILDKIT=1 docker build --build-arg CUDA_VERSION=12.9.1 --build-arg TORCH_CUDA_ARCH_LIST='8.7 8.9 9.0' --build-arg PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cu129 --build-arg SCCACHE_BUCKET=lexiq-nova-build-sccache --build-arg SCCACHE_REGION=us-west-2 --tag flashmla-build:cu129-aarch64 --target build -f .buildkite/Dockerfile ."
+      - "mkdir -p artifacts"
+      - "docker run --rm -v $(pwd)/artifacts:/artifacts_host flashmla-build:cu129-aarch64 bash -c 'cp -r dist /artifacts_host && chmod -R a+rw /artifacts_host'"
+      - "pip install modal"
       - "export MODAL_TOKEN_ID=$(buildkite-agent secret get MODAL_TOKEN_ID)"
       - "export MODAL_TOKEN_SECRET=$(buildkite-agent secret get MODAL_TOKEN_SECRET)"
       - "modal token set --token-id \"$${MODAL_TOKEN_ID}\" --token-secret \"$${MODAL_TOKEN_SECRET}\" --profile=remodlai"
       - "modal profile activate remodlai"
-      - "WHEEL_FILE=$(ls dist/*.whl | head -1)"
+      - "WHEEL_FILE=$(ls artifacts/dist/*.whl | head -1)"
       - "modal volume put wheels \"$${WHEEL_FILE}\" \"/packages/$(basename \"$${WHEEL_FILE}\")\""
     env:
       DOCKER_BUILDKIT: "1"
-      SCCACHE_BUCKET: "lexiq-nova-build-sccache"
-      SCCACHE_REGION: "us-west-2"
-      SCCACHE_S3_NO_CREDENTIALS: "1"
-      SCCACHE_IDLE_TIMEOUT: "0"
 # this only allows buildkite to know these secrets exist.  you must use `buildkite-agent secret get` to get the values.
 secrets:
   - MODAL_TOKEN_ID
