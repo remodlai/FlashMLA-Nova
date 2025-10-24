@@ -122,8 +122,8 @@ ext_modules.append(
     CUDAExtension(
         name="flash_mla.dense_fp8",
         sources=[
-            "csrc/sm90/decode/dense_fp8/pybind.cpp",
-            "csrc/sm90/decode/dense_fp8/flash_fwd_mla_fp8_sm90.cu",
+            "csrc/extension/sm90/dense_fp8/pybind.cpp",
+            "csrc/extension/sm90/dense_fp8/flash_fwd_mla_fp8_sm90.cu",
         ],
         extra_compile_args={
             "cxx": cxx_args + get_features_args() + ["-DNO_PYBIND11=1"],
@@ -147,7 +147,7 @@ ext_modules.append(
         include_dirs=[
             Path(this_dir) / "csrc",
             Path(this_dir) / "csrc" / "sm90",
-            Path(this_dir) / "csrc" / "sm90" / "decode" / "dense_fp8",
+            Path(this_dir) / "csrc" / "extension" / "sm90" / "dense_fp8",
             Path(this_dir) / "csrc" / "cutlass" / "include",
             Path(this_dir) / "csrc" / "cutlass" / "tools" / "util" / "include",
         ],
