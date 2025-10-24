@@ -26,7 +26,7 @@ ARG PYTORCH_INDEX_URL
 RUN /root/.local/bin/uv pip install --system \
     torch==2.8.0 \
     --extra-index-url ${PYTORCH_INDEX_URL} \
-    && /root/.local/bin/uv pip install --system ninja cmake sccache
+    && /root/.local/bin/uv pip install --system ninja cmake sccache setuptools wheel packaging
 
 WORKDIR /workspace
 COPY . .
