@@ -62,7 +62,7 @@ steps:
       - "modal volume put wheels \"$WHEEL_FILE\" /packages/$(basename \"$WHEEL_FILE\")"
     env:
       DOCKER_BUILDKIT: "1"
-
+# this only allows buildkite to know these secrets exist.  you must use `buildkite-agent secret get` to get the values.
 secrets:
   - MODAL_TOKEN_ID
   - MODAL_TOKEN_SECRET
